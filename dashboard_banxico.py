@@ -257,23 +257,20 @@ with abajo_izq:
     st.pyplot(fig)
 
 with abajo_der:
-    st.subheader("Promedio por mes y año")
-    calor = principal.pivot_table(index="Anio", columns="Mes",
-                                  values="Valor", aggfunc="mean")
+    st.subheader("Volatilidad móvil")
+    ventana = max(suavizado, 2)  # la desviación estándar necesita al menos 2 datos
+    variacion = principal["Valor"].pct_change() * 100
+    volatilidad = variacion.rolling(ventana).std()
 
     fig, ax = plt.subplots(figsize=(6, 3.4))
-    imagen = ax.imshow(calor, cmap="YlGnBu", aspect="auto")
-    fig.colorbar(imagen, ax=ax)
-    ax.set_xticks(range(len(calor.columns)))
-    ax.set_xticklabels(["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul",
-                        "Ago", "Sep", "Oct", "Nov", "Dic"][:len(calor.columns)])
-    ax.set_yticks(range(len(calor.index)))
-    ax.set_yticklabels(calor.index)
-    ax.grid(False)
+    ax.plot(principal["Fecha"], volatilidad, color=ROJO, linewidth=1.6)
+    ax.fill_between(principal["Fecha"], volatilidad, color=ROJO, alpha=0.15)
+    ax.set_xlabel("Fecha")
+    ax.set_ylabel("Desviación estándar (%)")
     st.pyplot(fig)
-    st.caption("Escala secuencial: el valor tiene orden pero no un cero "
-               "con significado, así que no va divergente.")
-
+    st.caption(f"Qué tanto varió el valor día con día en ventanas de "
+               f"{ventana} días. Picos altos indican periodos de mayor "
+               "incertidumbre.")
 
 # ─── Datos ─────────────────────────────────────────────────────────────
 with st.expander("Ver y descargar los datos"):
